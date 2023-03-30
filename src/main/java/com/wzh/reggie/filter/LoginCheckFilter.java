@@ -53,7 +53,7 @@ public class LoginCheckFilter implements Filter {
         HttpSession session = request.getSession();
         Object employee = session.getAttribute("employee");
         if (employee != null) {
-            log.info("用户以登录,用户id{}", session.getAttribute("employee"));
+            log.info("用户已登录,用户id:{}", session.getAttribute("employee"));
             filterChain.doFilter(request, response);
             return;
         }
