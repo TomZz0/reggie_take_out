@@ -58,10 +58,11 @@
           prop="phone"
           label="手机号"
         ></el-table-column>
-        <el-table-column label="账号状态" prop="status">
-          <!--<template slot-scope="scope">-->
-          <!--  {{ String(scope.row.status) === '0' ? '已禁用' : '正常' }}-->
-          <!--</template>-->
+        <!--prop="status"  显示原生数据-->
+        <el-table-column label="账号状态">
+          <template slot-scope="scope">
+            {{ String(scope.row.status) === '0' ? '已禁用' : '正常' }}
+          </template>
         </el-table-column>
         <el-table-column
           label="操作"

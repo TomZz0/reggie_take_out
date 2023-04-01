@@ -24,7 +24,6 @@ import java.util.LinkedList;
  * Description:
  */
 @Slf4j
-@RestController
 @RequestMapping("/employee")
 public class EmployeeController {
 
@@ -82,12 +81,12 @@ public class EmployeeController {
         //设置统一密码 需要进行MD5加密
         String pwd = DigestUtils.md5DigestAsHex("123456".getBytes());
         employee.setPassword(pwd);
-        //设置创建时间和更新时间
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
+        //设置创建时间和更新时间 抽取到方法中进行设置
+        //employee.setCreateTime(LocalDateTime.now());
+        //employee.setUpdateTime(LocalDateTime.now());
         //设置创建人和更新人 为当前登录用户的id
-        employee.setCreateUser((Long) request.getSession().getAttribute("employee"));
-        employee.setUpdateUser((Long) request.getSession().getAttribute("employee"));
+        //employee.setCreateUser((Long) request.getSession().getAttribute("employee"));
+        //employee.setUpdateUser((Long) request.getSession().getAttribute("employee"));
         //保存到数据库
         employeeService.save(employee);
         return R.success("添加成功");
@@ -106,5 +105,36 @@ public class EmployeeController {
         //执行查询操作
         employeeService.page(pageInfo, queryWrapper);
         return R.success(pageInfo);
+    }
+
+    /**
+     * 根据员工id修改员工信息
+     * 修改员工信和和禁用启用都使用这一方法
+     * @return
+     */
+    @PutMapping()
+    public R<String> update(HttpServletRequest request, @RequestBody Employee employee) {
+        //获取当前用户id
+        Long empId = (Long) request.getSession().getAttribute("employee");
+        //更新修改用户
+        //employee.setUpdateUser(empId);
+        //更新修改时间
+        // employee.setUpdateTime(LocalDateTime.now());
+        //更新用户
+        employeeService.updateById(employee);
+        return R.success("员工信息修改成功");
+    }
+
+    /**
+     * 通过id查询用户
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public R<Employee> getById(@PathVariable("id") Long id) {
+        Employee byId = employeeService.getById(id);
+        if(byId!=null)
+        return R.success(byId);
+        else return R.error("未查询到目标用户 查询失败");
     }
 }
