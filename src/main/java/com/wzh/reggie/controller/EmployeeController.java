@@ -25,6 +25,7 @@ import java.util.LinkedList;
  */
 @Slf4j
 @RequestMapping("/employee")
+@RestController
 public class EmployeeController {
 
     @Autowired
@@ -99,7 +100,7 @@ public class EmployeeController {
         //创建条件构造器
         LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<Employee>();
         //添加过滤条件
-        queryWrapper.like(!StringUtils.isEmpty(name), Employee::getName, name);
+        queryWrapper.like(StringUtils.hasText(name), Employee::getName, name);
         //添加排序条件
         queryWrapper.orderByDesc(Employee::getUpdateTime);
         //执行查询操作
@@ -110,12 +111,13 @@ public class EmployeeController {
     /**
      * 根据员工id修改员工信息
      * 修改员工信和和禁用启用都使用这一方法
+     *
      * @return
      */
     @PutMapping()
     public R<String> update(HttpServletRequest request, @RequestBody Employee employee) {
         //获取当前用户id
-        Long empId = (Long) request.getSession().getAttribute("employee");
+        //Long empId = (Long) request.getSession().getAttribute("employee");
         //更新修改用户
         //employee.setUpdateUser(empId);
         //更新修改时间
@@ -126,15 +128,18 @@ public class EmployeeController {
     }
 
     /**
-     * 通过id查询用户
+     * 通过id查询用户 服务器接收传入的id 查询数据 以json形式响应给页面
+     * 只有value值没有key 不是id=111而是直接在路径中 employee/111
+     * 所以要使用占位符加@PathVariable注解
+     *
      * @param id
      * @return
      */
     @GetMapping("/{id}")
     public R<Employee> getById(@PathVariable("id") Long id) {
         Employee byId = employeeService.getById(id);
-        if(byId!=null)
-        return R.success(byId);
+        if (byId != null)
+            return R.success(byId);
         else return R.error("未查询到目标用户 查询失败");
     }
 }

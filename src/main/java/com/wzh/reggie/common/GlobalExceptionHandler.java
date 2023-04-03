@@ -34,4 +34,15 @@ public class GlobalExceptionHandler {
         }
         return R.error("未知错误 操作失败");
     }
+
+    /**
+     * 处理自定义的异常 将结果反馈至页面
+     *
+     * @return 返回处理结果
+     */
+    @ExceptionHandler(CustomException.class)
+    public R<String> customExceptionHandler(CustomException ex) {
+        log.error(ex.getMessage());
+        return R.error(ex.getMessage());
+    }
 }
