@@ -1,9 +1,12 @@
 package com.wzh.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wzh.reggie.common.R;
+import com.wzh.reggie.dto.DishDto;
 import com.wzh.reggie.dto.SetmealDto;
+import com.wzh.reggie.entity.Dish;
 import com.wzh.reggie.entity.Setmeal;
 import com.wzh.reggie.entity.SetmealDish;
 import com.wzh.reggie.service.SetmealDishService;
@@ -41,7 +44,8 @@ public class SetmealController {
 
     @GetMapping("/page")
     public R<Page<SetmealDto>> page(Integer page, Integer pageSize, String name) {
-        //获取页面 因为Dish中并没有菜系名 所以要使用dto
+        //获取页面 因为Setmeal中并没有套餐种类名 所以要使用dto
+        //查询得到的page中有多个setmeal数据 将每个都转成setmealdto 添加到一个集合中
         Page<Setmeal> pageInfo = new Page<>(page, pageSize);
         Page<SetmealDto> setmealDtoPage = new Page<>();
         //添加查询条件
@@ -49,7 +53,7 @@ public class SetmealController {
         //添加like查询 判断name是否为空 非空则加入查询条件
         queryWrapper.like(StringUtils.hasText(name), Setmeal::getName, name);
         //按照更新时间查询
-        queryWrapper.orderByDesc(Setmeal::getUpdateTime);
+        queryWrapper.orderByDesc(Setmeal::getStatus);
         //执行查询 将结果更新到pageInfo中
         setmealService.page(pageInfo, queryWrapper);
         //对象拷贝 因为要处理记录中的菜系名 所以无需拷贝records
@@ -77,6 +81,50 @@ public class SetmealController {
         }
 
         setmealDtoPage.setRecords(list);
+
         return R.success(setmealDtoPage);
+    }
+
+    /**
+     * 修改套餐需要先获取套餐原信息 回显到页面
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public R<SetmealDto> getSetmealById(@PathVariable Long id) {
+        //获取setmealDto对象
+        SetmealDto setmealDto = setmealService.getByIdWithDishes(id);
+        //返回
+        return R.success(setmealDto);
+    }
+
+    /**
+     * 套餐修改操作
+     *
+     * @param setmealDto
+     * @return
+     */
+    @PutMapping
+    public R<String> update(@RequestBody SetmealDto setmealDto) {
+        setmealService.updateWithDishes(setmealDto);
+        return R.success("套餐修改成功");
+    }
+
+    /**
+     * 套餐停售功能
+     */
+    @PostMapping("/status/{status}")
+    public R<String> stopSelling(@PathVariable("status") Integer status,@RequestParam List<Long> ids) {
+
+        setmealService.updateStatus(status, ids);
+
+        return R.success("修改状态成功");
+    }
+
+    @DeleteMapping
+    public R<String> delete(@RequestParam List<Long> ids) {
+        setmealService.deleteById(ids);
+        return R.success("删除套餐成功");
     }
 }

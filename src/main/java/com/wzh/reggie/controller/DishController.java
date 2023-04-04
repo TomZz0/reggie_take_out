@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
 /**
@@ -125,17 +126,11 @@ public class DishController {
     }
 
     /**
-     * 套餐停售功能
+     * 菜品停售功能
      */
     @PostMapping("/status/{status}")
-    public R<String> stopSelling(@PathVariable("status") Integer status, Long ids) {
-        //sql操作器
-        LambdaUpdateWrapper<Dish> queryWrapper = new LambdaUpdateWrapper<>();
-        //创建操作条件
-        queryWrapper.set(Dish::getStatus, status);
-        queryWrapper.eq(Dish::getId, ids);
-        //执行修改
-        dishService.update(queryWrapper);
+    public R<String> stopSelling(@PathVariable("status") Integer status, @RequestParam List<Long> ids) {
+        dishService.updateStatus(status, ids);
         return R.success("修改状态成功");
     }
 
@@ -145,10 +140,9 @@ public class DishController {
      * 删除对应菜品
      */
     @DeleteMapping
-    public R<String> delete(Long ids) {
+    public R<String> delete(@RequestParam List<Long> ids) {
         dishService.deleteByIdWithFlavor(ids);
-
-        return R.success("删除成功");
+        return R.error("删除菜品成功");
     }
 
     /**
@@ -163,7 +157,7 @@ public class DishController {
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(dish.getCategoryId() != null, Dish::getCategoryId, dish.getCategoryId());
         //只查询处于销售中的菜品
-        queryWrapper.eq(Dish::getStatus,1);
+        queryWrapper.eq(Dish::getStatus, 1);
         //添加排序条件
         queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
         //查询

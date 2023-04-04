@@ -1,13 +1,18 @@
 package com.wzh.reggie.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wzh.reggie.common.CustomException;
 import com.wzh.reggie.dto.DishDto;
 import com.wzh.reggie.entity.Dish;
 import com.wzh.reggie.entity.DishFlavor;
+import com.wzh.reggie.entity.SetmealDish;
 import com.wzh.reggie.mapper.DishMapper;
 import com.wzh.reggie.service.DishFlavorService;
 import com.wzh.reggie.service.DishService;
+import com.wzh.reggie.service.SetmealDishService;
+import com.wzh.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +32,8 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
 
     @Autowired
     private DishFlavorService dishFlavorService;
+    @Autowired
+    private SetmealDishService setmealDishService;
 
     /**
      * 新增菜品 保存菜品和口味
@@ -92,7 +99,12 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     }
 
     @Override
-    public void deleteByIdWithFlavor(Long ids) {
+    public void deleteByIdWithFlavor(List<Long> ids) {
+        //先查询是否有套餐菜品关系含有某个菜品 若含有则无法删除菜品
+        LambdaUpdateWrapper<SetmealDish> smdQueryWrapper = new LambdaUpdateWrapper<>();
+        smdQueryWrapper.in(SetmealDish::getDishId, ids);
+        int count = setmealDishService.count(smdQueryWrapper);
+        if (count != 0)throw new CustomException("菜品在套餐中,无法删除");
         //先设置查询器删除口味
         LambdaQueryWrapper<DishFlavor> dishFlavorLambdaQueryWrapper = new LambdaQueryWrapper<>();
         //设置查询条件 菜品名为ids就删除
@@ -105,6 +117,17 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         dishLambdaQueryWrapper.eq(Dish::getId, ids);
         //执行删除
         this.remove(dishLambdaQueryWrapper);
+    }
+
+    @Override
+    public void updateStatus(Integer status, List<Long> ids) {
+        //sql操作器
+        LambdaUpdateWrapper<Dish> queryWrapper = new LambdaUpdateWrapper<>();
+        //创建操作条件
+        queryWrapper.set(Dish::getStatus, status);
+        queryWrapper.in(Dish::getId, ids);
+        //执行修改
+        this.update(queryWrapper);
     }
 
 }
