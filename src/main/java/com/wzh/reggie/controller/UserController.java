@@ -73,7 +73,7 @@ public class UserController {
         User one = userService.getOne(queryWrapper);
         //判断是否为空 为空说明是新用户 要注册
         if (one != null) {
-            //保存用户id
+            //保存用户id 因为拦截器会判断否已经登录并决定是否需要跳到登陆页面
             session.setAttribute("user",one.getId());
             return R.success(one);
         }
