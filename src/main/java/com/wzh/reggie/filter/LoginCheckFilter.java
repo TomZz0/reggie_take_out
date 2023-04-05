@@ -52,7 +52,7 @@ public class LoginCheckFilter implements Filter {
             return;
         }
 
-        //4-1 判断登录状态 如果已经登录就放行
+        //4-1 判断employee登录状态 如果已经登录就放行
         HttpSession session = request.getSession();
         Object employee = session.getAttribute("employee");
         if (employee != null) {
@@ -65,7 +65,7 @@ public class LoginCheckFilter implements Filter {
             filterChain.doFilter(request, response);
             return;
         }
-        //4-2 判断登录状态 如果已经登录就放行
+        //4-2 判断user登录状态 如果已经登录就放行
         Object user = session.getAttribute("user");
         if (user != null) {
             //从session中获取id

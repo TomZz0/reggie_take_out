@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -104,7 +105,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         LambdaUpdateWrapper<SetmealDish> smdQueryWrapper = new LambdaUpdateWrapper<>();
         smdQueryWrapper.in(SetmealDish::getDishId, ids);
         int count = setmealDishService.count(smdQueryWrapper);
-        if (count != 0)throw new CustomException("菜品在套餐中,无法删除");
+        if (count != 0) throw new CustomException("菜品在套餐中,无法删除");
         //先设置查询器删除口味
         LambdaQueryWrapper<DishFlavor> dishFlavorLambdaQueryWrapper = new LambdaQueryWrapper<>();
         //设置查询条件 菜品名为ids就删除
@@ -128,6 +129,38 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         queryWrapper.in(Dish::getId, ids);
         //执行修改
         this.update(queryWrapper);
+    }
+
+    @Override
+    public List<DishDto> getListWithFlavor(Dish dish) {
+        //设置查询条件
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(dish.getCategoryId() != null, Dish::getCategoryId, dish.getCategoryId());
+        //只查询处于销售中的菜品
+        queryWrapper.eq(Dish::getStatus, 1);
+        //添加排序条件
+        queryWrapper.orderByDesc(Dish::getUpdateTime);
+        //查询
+        List<Dish> list = this.list(queryWrapper);
+        List<DishDto> dishDtos = new ArrayList<>();
+        //设置DishDto 赋值口味
+        for (Dish dish1 : list) {
+            //查询口味并设置
+            Long id = dish1.getId();
+            LambdaQueryWrapper<DishFlavor> queryWrapper1 = new LambdaQueryWrapper<>();
+            //根据菜品id查询口味
+            queryWrapper1.eq(DishFlavor::getDishId, id);
+            List<DishFlavor> list1 = dishFlavorService.list(queryWrapper1);
+            //创建dto对象
+            DishDto dishDto = new DishDto();
+            //将dish中的数据拷贝到dishdto 因为dishdto继承了dish 可以拷贝
+            BeanUtils.copyProperties(dish1, dishDto);
+            //设置口味属性
+            dishDto.setFlavors(list1);
+            //添加到返回集合中
+            dishDtos.add(dishDto);
+        }
+        return dishDtos;
     }
 
 }

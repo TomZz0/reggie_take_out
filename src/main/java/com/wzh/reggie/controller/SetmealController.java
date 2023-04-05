@@ -115,16 +115,38 @@ public class SetmealController {
      * 套餐停售功能
      */
     @PostMapping("/status/{status}")
-    public R<String> stopSelling(@PathVariable("status") Integer status,@RequestParam List<Long> ids) {
+    public R<String> stopSelling(@PathVariable("status") Integer status, @RequestParam List<Long> ids) {
 
         setmealService.updateStatus(status, ids);
 
         return R.success("修改状态成功");
     }
 
+    /**
+     * 套餐删除
+     *
+     * @param ids
+     * @return
+     */
     @DeleteMapping
     public R<String> delete(@RequestParam List<Long> ids) {
         setmealService.deleteById(ids);
         return R.success("删除套餐成功");
+    }
+
+    /**
+     * 查询某个套餐类下的套餐
+     * 接收套餐类id和售卖状态
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Setmeal>> list(Setmeal setmeal) {
+        //移动端查询套餐信息并返回 展示到页面
+        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(setmeal.getStatus() != null, Setmeal::getStatus, setmeal.getStatus());
+        queryWrapper.eq(setmeal.getCategoryId() != null, Setmeal::getCategoryId, setmeal.getCategoryId());
+        List<Setmeal> list = setmealService.list(queryWrapper);
+        return R.success(list);
+
     }
 }

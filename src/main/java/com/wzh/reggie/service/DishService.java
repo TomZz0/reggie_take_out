@@ -35,4 +35,11 @@ public interface DishService extends IService<Dish> {
     void deleteByIdWithFlavor(List<Long> ids);
 
     void updateStatus(Integer status, List<Long> ids);
+
+    /**
+     * 查询菜系下的菜品 一并返回口味
+     * @param dish
+     * @return
+     */
+    List<DishDto> getListWithFlavor(Dish dish);
 }

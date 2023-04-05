@@ -83,6 +83,7 @@ public class CategoryController {
 
     /**
      * 获取菜系列表 添加菜品时或添加套餐时使用
+     *
      * @param category
      * @return
      */
@@ -91,7 +92,8 @@ public class CategoryController {
         //条件构造器
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
         //添加查询条件
-        queryWrapper.eq(Category::getType, category.getType());
+        if (category.getType() != null)
+            queryWrapper.eq(Category::getType, category.getType());
         queryWrapper.orderByDesc(Category::getSort).orderByDesc(Category::getUpdateTime);
         //查询集合
         List<Category> list = categoryService.list(queryWrapper);

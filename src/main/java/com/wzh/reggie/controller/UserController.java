@@ -49,8 +49,9 @@ public class UserController {
         if (phone == null) return R.error("手机号为空 发送失败");
         //生成4位随机验证码
         String code = ValidateCodeUtils.generateValidateCode(4).toString();
+        log.info("======验证码是{}", code);
         //发送短信 注意要设置签名和模板Code 前端响应请求返回手机号
-        SMSUtils.sendMessage("阿里云短信测试", "SMS_154950909", phone, code);
+        SMSUtils.sendMessage("外卖项目开发学习", "SMS_275345788", phone, code);
         //保存到session中用于后续判断
         session.setAttribute(phone, code);
         return R.success("手机验证码短信发送成功");
@@ -74,13 +75,15 @@ public class UserController {
         //判断是否为空 为空说明是新用户 要注册
         if (one != null) {
             //保存用户id 因为拦截器会判断否已经登录并决定是否需要跳到登陆页面
-            session.setAttribute("user",one.getId());
+            session.setAttribute("user", one.getId());
             return R.success(one);
         }
         //注册
         User user = new User();
         user.setPhone(phone);
         userService.save(user);
+        //保存用户id 因为拦截器会判断否已经登录并决定是否需要跳到登陆页面
+        session.setAttribute("user", user.getId());
         return R.success(user);
     }
 }
